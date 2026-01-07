@@ -14,6 +14,26 @@ internal class Program
     var macOption = new Option<string>("--mac")
     { Description = "대상 장비의 MAC 주소 (예: AA-BB-CC-DD-EE-FF 또는 AABBCCDDEEFF)", Required = true };
 
+    var ipOption = new Option<IPAddress>("--ip")
+    {
+      DefaultValueFactory = _ => IPAddress.Broadcast,
+      Description = "대상 장비의 IP 주소 (기본값: 브로드캐스트 주소)",
+      CustomParser = result =>
+      {
+        var token = result.Tokens.Count > 0
+        ? result.Tokens[0].Value
+        : null;
+
+        if (string.IsNullOrWhiteSpace(token))
+          return IPAddress.Broadcast;
+
+        if (IPAddress.TryParse(token, out var ip))
+          return ip;
+
+        result.AddError($"Invalid value for --ip: {token}");
+        return null;
+      }
+    };
 
     var portOption = new Option<int>("--port")
     {
